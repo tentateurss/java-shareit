@@ -104,6 +104,22 @@ class ItemServiceTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    void updateShouldThrowWhenNotOwner() {
+        ItemDto dto = new ItemDto();
+        dto.setName("Дрель");
+        dto.setDescription("Мощная");
+        dto.setAvailable(true);
+        ItemDto created = itemService.create(ownerId, dto);
+
+        ItemDto updateDto = new ItemDto();
+        updateDto.setName("Новое название");
+
+        assertThrows(NotFoundException.class, () ->
+                itemService.update(999L, created.getId(), updateDto)
+        );
+    }
+
     private ItemDto createItemDto(String name, String description, Boolean available) {
         ItemDto dto = new ItemDto();
         dto.setName(name);

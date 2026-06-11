@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -37,6 +38,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+            throw new ValidationException("Email не может быть пустым");
+        }
+        if (!userDto.getEmail().contains("@")) {
+            throw new ValidationException("Некорректный формат email");
+        }
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
+            throw new ValidationException("Имя не может быть пустым");
+        }
+
         log.info("Сохранение пользователя {}", userDto);
         if (userStorage.emailExists(userDto.getEmail())) {
             throw new DuplicatedDataException("Email уже используется");
@@ -49,18 +60,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(Long id, UserDto userDto) {
-        log.info("Обновление пользователя с id={}", id);
         User existingUser = userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id=" + id + " не найден"));
 
-        if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
-            if (userStorage.emailExists(userDto.getEmail())) {
-                throw new DuplicatedDataException("Email уже используется");
+        if (userDto.getEmail() != null && !userDto.getEmail().isBlank()) {
+            if (!userDto.getEmail().contains("@")) {
+                throw new ValidationException("Некорректный формат email");
             }
-            existingUser.setEmail(userDto.getEmail());
+            if (!userDto.getEmail().equals(existingUser.getEmail())) {
+                if (userStorage.emailExists(userDto.getEmail())) {
+                    throw new DuplicatedDataException("Email уже используется");
+                }
+                existingUser.setEmail(userDto.getEmail());
+            }
         }
 
-        if (userDto.getName() != null) {
+        if (userDto.getName() != null && !userDto.getName().isBlank()) {
             existingUser.setName(userDto.getName());
         }
 
@@ -70,6 +85,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
+        userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + id + " не найден"));
         userStorage.delete(id);
     }
 }

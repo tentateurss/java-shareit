@@ -116,4 +116,24 @@ class UserServiceTest {
 
         assertThrows(NotFoundException.class, () -> userService.findById(created.getId()));
     }
+
+    @Test
+    void updateShouldThrowWhenEmailAlreadyExists() {
+        UserDto user1 = new UserDto();
+        user1.setName("Иван");
+        user1.setEmail("ivan@mail.ru");
+        UserDto created1 = userService.create(user1);
+
+        UserDto user2 = new UserDto();
+        user2.setName("Пётр");
+        user2.setEmail("petr@mail.ru");
+        userService.create(user2);
+
+        UserDto updateDto = new UserDto();
+        updateDto.setEmail("petr@mail.ru");
+
+        assertThrows(DuplicatedDataException.class, () ->
+                userService.update(created1.getId(), updateDto)
+        );
+    }
 }
