@@ -17,7 +17,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now);
 
     List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
+
     List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
+
     List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long bookerId, BookingStatus status);
 
     // методы для владельца
@@ -27,11 +29,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findCurrentByOwnerId(Long ownerId, LocalDateTime now);
 
     List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
+
     List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
+
     List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Long ownerId, BookingStatus status);
 
     // методы для получения последнего и следующего бронирования вещи
     Booking findFirstByItemIdAndStatusAndStartLessThanEqualOrderByStartDesc(Long itemId, BookingStatus status, LocalDateTime now);
+
     Booking findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(Long itemId, BookingStatus status, LocalDateTime now);
 
     // для проверки, арендовал ли пользователь вещь
