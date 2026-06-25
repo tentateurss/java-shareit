@@ -11,34 +11,45 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // методы для арендатора
-    List<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 ORDER BY b.start DESC")
+    List<Booking> findByBooker(Long bookerId);
 
-    @Query("select b from Booking b where b.booker.id = ?1 and b.start <= ?2 and b.end >= ?2 order by b.start desc")
-    List<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 AND b.start <= ?2 AND b.end >= ?2 ORDER BY b.start DESC")
+    List<Booking> findCurrentByBooker(Long bookerId, LocalDateTime now);
 
-    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 AND b.end < ?2 ORDER BY b.start DESC")
+    List<Booking> findPastByBooker(Long bookerId, LocalDateTime now);
 
-    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 AND b.start > ?2 ORDER BY b.start DESC")
+    List<Booking> findFutureByBooker(Long bookerId, LocalDateTime now);
 
-    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long bookerId, BookingStatus status);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 AND b.status = ?2 ORDER BY b.start DESC")
+    List<Booking> findByBookerAndStatus(Long bookerId, BookingStatus status);
 
     // методы для владельца
-    List<Booking> findAllByItemOwnerIdOrderByStartDesc(Long ownerId);
+    @Query("SELECT b FROM Booking b WHERE b.item.ownerId = ?1 ORDER BY b.start DESC")
+    List<Booking> findByOwner(Long ownerId);
 
-    @Query("select b from Booking b where b.item.ownerId = ?1 and b.start <= ?2 and b.end >= ?2 order by b.start desc")
-    List<Booking> findCurrentByOwnerId(Long ownerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.item.ownerId = ?1 AND b.start <= ?2 AND b.end >= ?2 ORDER BY b.start DESC")
+    List<Booking> findCurrentByOwner(Long ownerId, LocalDateTime now);
 
-    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.item.ownerId = ?1 AND b.end < ?2 ORDER BY b.start DESC")
+    List<Booking> findPastByOwner(Long ownerId, LocalDateTime now);
 
-    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.item.ownerId = ?1 AND b.start > ?2 ORDER BY b.start DESC")
+    List<Booking> findFutureByOwner(Long ownerId, LocalDateTime now);
 
-    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Long ownerId, BookingStatus status);
+    @Query("SELECT b FROM Booking b WHERE b.item.ownerId = ?1 AND b.status = ?2 ORDER BY b.start DESC")
+    List<Booking> findByOwnerAndStatus(Long ownerId, BookingStatus status);
 
     // методы для получения последнего и следующего бронирования вещи
-    Booking findFirstByItemIdAndStatusAndStartLessThanEqualOrderByStartDesc(Long itemId, BookingStatus status, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.status = ?2 AND b.start <= ?3 ORDER BY b.start DESC LIMIT 1")
+    Booking findLastBooking(Long itemId, BookingStatus status, LocalDateTime now);
 
-    Booking findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(Long itemId, BookingStatus status, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.item.id = ?1 AND b.status = ?2 AND b.start > ?3 ORDER BY b.start ASC LIMIT 1")
+    Booking findNextBooking(Long itemId, BookingStatus status, LocalDateTime now);
 
     // для проверки, арендовал ли пользователь вещь
-    List<Booking> findAllByBookerIdAndItemIdAndEndBefore(Long bookerId, Long itemId, LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1 AND b.item.id = ?2 AND b.end < ?3")
+    List<Booking> findCompletedByBookerAndItem(Long bookerId, Long itemId, LocalDateTime now);
 }

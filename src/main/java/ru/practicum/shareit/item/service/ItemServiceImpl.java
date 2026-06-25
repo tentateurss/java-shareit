@@ -127,7 +127,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
-        List<Booking> bookings = bookingRepository.findAllByBookerIdAndItemIdAndEndBefore(userId, itemId, LocalDateTime.now());
+        List<Booking> bookings = bookingRepository.findCompletedByBookerAndItem(userId, itemId, LocalDateTime.now());
 
         boolean hasApprovedBooking = bookings.stream()
                 .anyMatch(b -> b.getStatus() == BookingStatus.APPROVED);
@@ -150,9 +150,9 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime now = LocalDateTime.now();
 
         Booking lastBooking = bookingRepository
-                .findFirstByItemIdAndStatusAndStartLessThanEqualOrderByStartDesc(dto.getId(), BookingStatus.APPROVED, now);
+                .findLastBooking(dto.getId(), BookingStatus.APPROVED, now);
         Booking nextBooking = bookingRepository
-                .findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(dto.getId(), BookingStatus.APPROVED, now);
+                .findNextBooking(dto.getId(), BookingStatus.APPROVED, now);
 
         if (lastBooking != null) {
             ItemDto.BookingShortDto lastDto = new ItemDto.BookingShortDto();
