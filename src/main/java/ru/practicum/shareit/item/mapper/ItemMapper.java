@@ -1,7 +1,10 @@
 package ru.practicum.shareit.item.mapper;
 
+import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+
+import java.util.List;
 
 public class ItemMapper {
 
@@ -23,5 +26,11 @@ public class ItemMapper {
         item.setAvailable(dto.getAvailable());
         item.setOwnerId(ownerId);
         return item;
+    }
+
+    public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
+        ItemDto dto = toItemDto(item);
+        dto.setComments(comments);
+        return dto;
     }
 }
