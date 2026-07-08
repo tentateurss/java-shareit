@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @JsonTest
-class BookingRequestDtoTest {
+public class BookingRequestDtoTest {
 
     @Autowired
     private JacksonTester<BookingRequestDto> json;
@@ -35,13 +35,11 @@ class BookingRequestDtoTest {
 
     @Test
     void testDeserialize() throws Exception {
-        String jsonContent = """
-                {
-                  "itemId": 2,
-                  "start": "2026-12-01T10:00:00",
-                  "end": "2026-12-01T12:00:00"
-                }
-                """;
+        String jsonContent = "{\n" +
+                "  \"itemId\": 2,\n" +
+                "  \"start\": \"2026-12-01T10:00:00\",\n" +
+                "  \"end\": \"2026-12-01T12:00:00\"\n" +
+                "}";
 
         BookingRequestDto dto = json.parse(jsonContent).getObject();
 
