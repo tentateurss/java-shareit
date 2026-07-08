@@ -170,4 +170,15 @@ class ItemRequestServiceImplTest {
 
         verify(requestRepository, times(1)).findById(requestId);
     }
+
+    @Test
+    void findFromOthersShouldThrowNotFoundExceptionWhenUserDoesNotExist() {
+        long userId = 999L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> requestService.findFromOthers(userId))
+                .isInstanceOf(NotFoundException.class);
+
+        verify(requestRepository, never()).findFromOthers(anyLong());
+    }
 }

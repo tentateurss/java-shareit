@@ -125,4 +125,35 @@ class UserServiceImplTest {
         userService.delete(1L);
         verify(userRepository, times(1)).deleteById(1L);
     }
+
+    @Test
+    void updateShouldModifyOnlyNameIfEmailIsNull() {
+        UserDto updateDto = new UserDto();
+        updateDto.setName("Только Имя");
+        updateDto.setEmail(null); // Проверяем ветку if (dto.getEmail() == null)
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.update(1L, updateDto);
+
+        assertThat(result.getName()).isEqualTo("Только Имя");
+        assertThat(result.getEmail()).isEqualTo(user.getEmail()); // Email не изменился
+    }
+
+    @Test
+    void updateShouldModifyOnlyEmailIfNameIsNull() {
+        UserDto updateDto = new UserDto();
+        updateDto.setName(null); // Проверяем ветку if (dto.getName() == null)
+        updateDto.setEmail("only-email@test.com");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("only-email@test.com")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.update(1L, updateDto);
+
+        assertThat(result.getName()).isEqualTo(user.getName()); // Имя не изменилось
+        assertThat(result.getEmail()).isEqualTo("only-email@test.com");
+    }
 }

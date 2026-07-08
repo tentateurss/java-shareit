@@ -268,4 +268,25 @@ class BookingServiceImplTest {
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Бронирование уже обработано");
     }
+
+    @Test
+    void createShouldThrowValidationExceptionWhenItemIsNotAvailable() {
+        long userId = 2L;
+        BookingRequestDto bookingDto = new BookingRequestDto();
+        bookingDto.setItemId(10L);
+
+        User user = new User();
+        user.setId(userId);
+
+        Item item = new Item();
+        item.setId(10L);
+        item.setOwnerId(1L);
+        item.setAvailable(false);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(10L)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> bookingService.create(userId, bookingDto))
+                .isInstanceOf(ValidationException.class);
+    }
 }
