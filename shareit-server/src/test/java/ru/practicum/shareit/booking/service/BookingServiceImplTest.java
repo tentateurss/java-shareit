@@ -214,4 +214,58 @@ class BookingServiceImplTest {
         bookingService.findByOwner(owner.getId(), "CURRENT");
         verify(bookingRepository, times(1)).findCurrentByOwner(eq(owner.getId()), any(LocalDateTime.class));
     }
+
+    // тесты для полного покрытия ветвлений
+
+    @Test
+    void findByBookerShouldCallCorrectMethodsForRemainingStates() {
+        when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
+
+        // состояние "PAST"
+        bookingService.findByBooker(booker.getId(), "PAST");
+        verify(bookingRepository, times(1)).findPastByBooker(eq(booker.getId()), any(LocalDateTime.class));
+
+        // состояние "CURRENT"
+        bookingService.findByBooker(booker.getId(), "CURRENT");
+        verify(bookingRepository, times(1)).findCurrentByBooker(eq(booker.getId()), any(LocalDateTime.class));
+
+        // состояние "REJECTED"
+        bookingService.findByBooker(booker.getId(), "REJECTED");
+        verify(bookingRepository, times(1)).findByBookerAndStatus(booker.getId(), BookingStatus.REJECTED);
+    }
+
+    @Test
+    void findByOwnerShouldCallCorrectMethodsForRemainingStates() {
+        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+
+        // состояние "ALL"
+        bookingService.findByOwner(owner.getId(), "ALL");
+        verify(bookingRepository, times(1)).findByOwner(owner.getId());
+
+        // состояние "FUTURE"
+        bookingService.findByOwner(owner.getId(), "FUTURE");
+        verify(bookingRepository, times(1)).findFutureByOwner(eq(owner.getId()), any(LocalDateTime.class));
+
+        // состояние "WAITING"
+        bookingService.findByOwner(owner.getId(), "WAITING");
+        verify(bookingRepository, times(1)).findByOwnerAndStatus(owner.getId(), BookingStatus.WAITING);
+
+        // состояние "REJECTED"
+        bookingService.findByOwner(owner.getId(), "REJECTED");
+        verify(bookingRepository, times(1)).findByOwnerAndStatus(owner.getId(), BookingStatus.REJECTED);
+    }
+
+    @Test
+    void approveShouldThrowValidationExceptionWhenAlreadyApproved() {
+        Booking booking = new Booking();
+        booking.setId(1000L);
+        booking.setItem(item);
+        booking.setStatus(BookingStatus.APPROVED);
+
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.approve(owner.getId(), booking.getId(), true))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Бронирование уже обработано");
+    }
 }
