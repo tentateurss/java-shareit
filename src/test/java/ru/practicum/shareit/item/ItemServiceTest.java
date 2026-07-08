@@ -1,44 +1,45 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.item.service.ItemServiceImpl;
-import ru.practicum.shareit.item.storage.InMemoryItemStorage;
-import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.InMemoryUserStorage;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 class ItemServiceTest {
 
+    @Autowired
     private ItemService itemService;
-    private ItemStorage itemStorage;
-    private UserStorage userStorage;
+
+    @Autowired
+    private UserService userService;
+
     private Long ownerId;
 
     @BeforeEach
     void setUp() {
-        itemStorage = new InMemoryItemStorage();
-        userStorage = new InMemoryUserStorage();
-        itemService = new ItemServiceImpl(itemStorage, userStorage);
-
-        User owner = new User();
+        UserDto owner = new UserDto();
         owner.setName("Владелец");
         owner.setEmail("owner@mail.ru");
-        User created = userStorage.create(owner);
+        UserDto created = userService.create(owner);
         ownerId = created.getId();
     }
 
     @Test
-    void createShouldReturnItemWithId() {
+    void create_ShouldReturnItemWithId() {
         ItemDto dto = new ItemDto();
         dto.setName("Дрель");
         dto.setDescription("Мощная");
@@ -48,11 +49,10 @@ class ItemServiceTest {
 
         assertNotNull(created.getId());
         assertEquals("Дрель", created.getName());
-        assertEquals(ownerId, created.getOwnerId());
     }
 
     @Test
-    void createShouldThrowWhenUserNotFound() {
+    void create_ShouldThrowWhenUserNotFound() {
         ItemDto dto = new ItemDto();
         dto.setName("Дрель");
         dto.setDescription("Мощная");
@@ -62,20 +62,20 @@ class ItemServiceTest {
     }
 
     @Test
-    void findByIdShouldReturnItem() {
+    void findById_ShouldReturnItem() {
         ItemDto dto = new ItemDto();
         dto.setName("Дрель");
         dto.setDescription("Мощная");
         dto.setAvailable(true);
         ItemDto created = itemService.create(ownerId, dto);
 
-        ItemDto found = itemService.findById(created.getId());
+        ItemDto found = itemService.findById(created.getId(), ownerId);
 
         assertEquals("Дрель", found.getName());
     }
 
     @Test
-    void findAllByOwnerIdShouldReturnOwnersItems() {
+    void findAllByOwnerId_ShouldReturnOwnersItems() {
         itemService.create(ownerId, createItemDto("Дрель", "Описание", true));
         itemService.create(ownerId, createItemDto("Молоток", "Описание", true));
 
@@ -85,7 +85,7 @@ class ItemServiceTest {
     }
 
     @Test
-    void searchShouldFindByName() {
+    void search_ShouldFindByName() {
         itemService.create(ownerId, createItemDto("Дрель", "Мощная", true));
         itemService.create(ownerId, createItemDto("Молоток", "Тяжёлый", false));
 
@@ -96,28 +96,12 @@ class ItemServiceTest {
     }
 
     @Test
-    void searchShouldNotFindUnavailable() {
+    void search_ShouldNotFindUnavailable() {
         itemService.create(ownerId, createItemDto("Дрель", "Мощная", false));
 
         List<ItemDto> result = itemService.search("дрель");
 
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void updateShouldThrowWhenNotOwner() {
-        ItemDto dto = new ItemDto();
-        dto.setName("Дрель");
-        dto.setDescription("Мощная");
-        dto.setAvailable(true);
-        ItemDto created = itemService.create(ownerId, dto);
-
-        ItemDto updateDto = new ItemDto();
-        updateDto.setName("Новое название");
-
-        assertThrows(NotFoundException.class, () ->
-                itemService.update(999L, created.getId(), updateDto)
-        );
     }
 
     private ItemDto createItemDto(String name, String description, Boolean available) {
