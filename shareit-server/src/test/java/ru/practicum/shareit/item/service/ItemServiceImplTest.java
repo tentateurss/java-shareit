@@ -201,4 +201,34 @@ class ItemServiceImplTest {
         List<ItemDto> result = itemService.search("   ");
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void updateShouldNotChangeFieldsIfDtoIsEmpty() {
+        long ownerId = 1L;
+        long itemId = 10L;
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setOwnerId(ownerId);
+        item.setName("Старое имя");
+        item.setDescription("Старое описание");
+        item.setAvailable(true);
+
+        ItemDto emptyDto = new ItemDto();
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemRepository.save(any(Item.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ItemDto result = itemService.update(ownerId, itemId, emptyDto);
+
+        assertThat(result.getName()).isEqualTo("Старое имя");
+        assertThat(result.getDescription()).isEqualTo("Старое описание");
+        assertThat(result.getAvailable()).isTrue();
+    }
+
+    @Test
+    void searchEmptyTextReturnsEmptyList() {
+        assertThat(itemService.search("")).isEmpty();
+        verify(itemRepository, never()).search(anyString());
+    }
 }

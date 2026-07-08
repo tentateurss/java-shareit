@@ -156,4 +156,17 @@ class UserServiceImplTest {
         assertThat(result.getName()).isEqualTo(user.getName()); // Имя не изменилось
         assertThat(result.getEmail()).isEqualTo("only-email@test.com");
     }
+
+    @Test
+    void updateShouldNotChangeFieldsIfDtoIsEmpty() {
+        UserDto emptyDto = new UserDto();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserDto result = userService.update(1L, emptyDto);
+
+        assertThat(result.getName()).isEqualTo(user.getName());
+        assertThat(result.getEmail()).isEqualTo(user.getEmail());
+    }
 }
