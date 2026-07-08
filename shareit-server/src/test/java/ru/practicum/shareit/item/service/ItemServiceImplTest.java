@@ -195,4 +195,10 @@ class ItemServiceImplTest {
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Вы не можете оставить отзыв на эту вещь");
     }
+
+    @Test
+    void searchShouldReturnEmptyListWhenTextIsOnlySpaces() {
+        List<ItemDto> result = itemService.search("   ");
+        assertThat(result).isEmpty();
+    }
 }

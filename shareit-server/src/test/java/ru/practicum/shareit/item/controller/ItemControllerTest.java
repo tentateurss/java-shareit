@@ -127,4 +127,27 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.id", is(responseComment.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(responseComment.getText())));
     }
+
+    @Test
+    void findAllShouldReturnList() throws Exception {
+        long userId = 1L;
+        when(itemService.findAllByOwnerId(userId)).thenReturn(List.of(itemDto));
+
+        mvc.perform(get("/items")
+                        .header("X-Sharer-User-Id", userId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(itemDto.getId()), Long.class));
+    }
+
+    @Test
+    void createItemWithoutUserHeaderShouldReturnBadRequest() throws Exception {
+        // Проверяем, как контроллер реагирует, если забыли заголовок (или если Spring сгенерирует MissingRequestHeaderException)
+        mvc.perform(post("/items")
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
 }
